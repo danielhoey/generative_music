@@ -9,7 +9,7 @@ class Phrase
 
   def initialize(options={})
     @notes = Array.new(options[:length]||0)
-    @commands = []
+    @note_off_list = []
     @default_velocity = options[:velocity]
   end
 
@@ -19,29 +19,19 @@ class Phrase
   end
 
   def play(midi, index)
-    c = commands[index]
-    return if c.nil?
+    note_on = @notes[index]
+    note_off = @note_off_list[index]
 
-    if c[0] == :note
-      note_reference = midi.note(*c[1..-1])
+    if note_on
+      pitch, duration = *note_on
+      note_reference = midi.note(pitch, {velocity: @default_velocity})
       duration = @notes[index][1]
-      commands[index+duration] = [:note_off, note_reference]
-    elsif c[0] == :note_off
-      midi.note_off(*c[1..-1])
-    end
-  end
-
-  def commands
-    if @commands.empty?
-      @commands = @notes.map{|n|
-        next if n.nil?
-        pitch, duration = *n
-        [:note, pitch, {velocity: @default_velocity}]
-      }
+      @note_off_list[index+duration] = note_reference
     end
 
-    @commands
+    if note_off
+      midi.note_off(note_off)
+    end
   end
-
 end
 end
