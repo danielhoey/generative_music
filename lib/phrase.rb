@@ -8,7 +8,7 @@ class Phrase
   def_delegators :@notes, :length 
 
   def initialize(options={})
-    @notes = Array.new(options[:length]||0)
+    @notes = Array.new(options[:length]||0) #TODO: should notes be a Hash?
     @note_off_list = []
     @options = options
   end
