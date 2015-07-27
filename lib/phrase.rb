@@ -10,11 +10,12 @@ class Phrase
   def initialize(options={})
     @notes = Array.new(options[:length]||0)
     @note_off_list = []
-    @default_velocity = options[:velocity]
+    @options = options
   end
 
-  def insert_note(index, pitch, duration)
+  def insert_note(index, pitch, duration, velocity=nil)
     @notes[index] = [pitch, duration]
+    @notes[index] << velocity unless velocity.nil?
     @notes[index+duration-1] = nil if @notes.length < index+duration # resize to include full phrase length
   end
 
@@ -23,8 +24,10 @@ class Phrase
     note_off = @note_off_list[index]
 
     if note_on
-      pitch, duration = *note_on
-      note_reference = midi.note(pitch, {velocity: @default_velocity})
+      pitch, duration, velocity = *note_on
+      options = @options
+      options.merge!(velocity: velocity) unless velocity.nil?
+      note_reference = midi.note(pitch, options)
       duration = @notes[index][1]
       @note_off_list[index+duration] = note_reference
     end

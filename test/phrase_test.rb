@@ -4,10 +4,10 @@ require_relative '../lib/phrase'
 class PhraseTest < MiniTest::Test
   include GenerativeMusic
   def test_insert_note
-    p = Phrase.new(:length => 4)
+    p = Phrase.new(length: 4)
     p.insert_note(0, 'C4', 3)
-    p.insert_note(1, 'D4', 1)
-    assert_equal [['C4', 3], ['D4', 1], nil, nil], p.notes
+    p.insert_note(1, 'D4', 1, 30)
+    assert_equal [['C4', 3], ['D4', 1, 30], nil, nil], p.notes
   end
 
   def test_insert_note_increase_length_of_phrase
@@ -20,6 +20,26 @@ class PhraseTest < MiniTest::Test
     p.insert_note(1, 'D4', 2)
     assert_equal 3, p.length
     assert_equal [['C4', 1], ['D4', 2], nil], p.notes
+  end
+  
+  def test_set_velocity_for_note
+    midi = MiniTest::Mock.new
+    
+    p = Phrase.new(velocity: 60)
+
+    p.insert_note(0, 'C4', 1, 40)
+    midi.expect(:note, '<ref>', ['C4', {velocity: 40}])
+    p.play(midi, 0)
+  end
+
+  def test_use_same_channel_for_whole_phrase
+    midi = MiniTest::Mock.new
+    
+    p = Phrase.new(channel: 1)
+
+    p.insert_note(0, 'C4', 1)
+    midi.expect(:note, '<ref>', ['C4', {channel: 1}])
+    p.play(midi, 0)
   end
 
   def test_play_note_inserts_note_off_command
